@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Client {
+  id    Int     @id @default(autoincrement())
+  name  String
+  books Book[]  @relation("ClientsBooks")
+
+  @@map("clients")
+}
+
+model Book {
+  id      Int      @id @default(autoincrement())
+  name    String
+  texts   Text[]
+  clients Client[] @relation("ClientsBooks")
+  accounts Account[] @relation("AccountsBooks")
+
+  @@map("books")
+}
+
+model Text {
+  id        Int       @id @default(autoincrement())
+  bookId    Int       @map("book_id")
+  name      String
+  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  captions  Caption[]
+  hashtags  Hashtag[] @relation("TextsHashtags")
+  labels    Label[]   @relation("TextsLabels")
+  orders    Order[]
+
+  @@map("texts")
+}
+
+model Caption {
+  id      Int   @id @default(autoincrement())
+  textId  Int   @map("text_id")
+  text    Text  @relation(fields: [textId], references: [id], onDelete: Cascade)
+
+  @@map("captions")
+}
+
+model Label {
+  id      Int     @id @default(autoincrement())
+  name    String
+  texts   Text[]  @relation("TextsLabels")
+  sounds  Sound[] @relation("SoundsLabels")
+
+  @@map("labels")
+}
+
+model Hashtag {
+  id       Int    @id @default(autoincrement())
+  hashtag  String
+  texts    Text[] @relation("TextsHashtags")
+
+  @@map("hashtags")
+}
+
+model Sound {
+  id      Int     @id @default(autoincrement())
+  name    String
+  labels  Label[] @relation("SoundsLabels")
+
+  @@map("sounds")
+}
+
+model Crew {
+  id      Int     @id @default(autoincrement())
+  name    String
+  phones  Phone[]
+
+  @@map("crew")
+}
+
+model Phone {
+  id      Int       @id @default(autoincrement())
+  crewId  Int       @map("crew_id")
+  name    String
+  crew    Crew      @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  accounts Account[]
+  orders   Order[]
+
+  @@map("phones")
+}
+
+model Account {
+  id              Int     @id @default(autoincrement())
+  phoneId         Int     @map("phone_id")
+  accountsName    String  @map("accounts_name")
+  followers       Int
+  totalLikes      Int     @map("total_likes")
+  profilePicture  String? @map("profile_picture")
+  phone           Phone   @relation(fields: [phoneId], references: [id], onDelete: Cascade)
+  orders          Order[]
+  books           Book[]  @relation("AccountsBooks")
+
+  @@map("accounts")
+}
+
+model Order {
+  id          Int           @id @default(autoincrement())
+  accountId   Int          @map("account_id")
+  textId      Int          @map("text_id")
+  phoneId     Int          @map("phone_id")
+  account     Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  text        Text         @relation(fields: [textId], references: [id], onDelete: Cascade)
+  phone       Phone        @relation(fields: [phoneId], references: [id], onDelete: Cascade)
+  metrics     VideoMetrics?
+
+  @@map("orders")
+}
+
+model VideoMetrics {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @unique @map("order_id")
+  views     Int
+  likes     Int
+  comments  Int
+  shares    Int
+  saves     Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("video_metrics")
+}
